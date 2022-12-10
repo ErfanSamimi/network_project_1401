@@ -65,7 +65,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     update_date = models.DateTimeField(auto_now=True)
     is_email_verified = models.BooleanField(default=False)
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'phone_number'
     objects = UserManager()
 
     is_staff = models.BooleanField(default=False)
@@ -114,6 +114,9 @@ class ChatRoom(models.Model):
 
     objects = ChatroomManager()
 
+    def __str__(self):
+        return self.chat_room_id
+
 
 class GroupChatManger(ChatroomManager):
     def create(self, group_name, creator):
@@ -131,6 +134,7 @@ class GroupChatManger(ChatroomManager):
 class GroupChat(ChatRoom):
     title = models.CharField(max_length=50)
     objects = GroupChatManger()
+
 
 
 class ChannelsManager(GroupChatManger):
@@ -204,6 +208,9 @@ class ChatRoom_Member(models.Model):
     class Meta:
         unique_together = ('chat_room', 'member')
 
+    def __str__(self):
+        return self.chat_room.chat_room_id
+
 
 def image_message_path(instance, filename):
     ext = filename.split('.')[-1]
@@ -275,5 +282,6 @@ class Message(models.Model):
 
     objects = MessageManger()
 
-
+    def __str__(self):
+        return self.chat_room.chat_room_id
 
