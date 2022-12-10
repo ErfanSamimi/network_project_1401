@@ -1,9 +1,10 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
 from asgiref.sync import async_to_sync
-from core.models import ChatRoom, Message, User, ChatRoom_Member
+from core.models import ChatRoom, Message, User, ChatRoom_Member, Channels, GroupChat
 from core.serializer import serialize_message
 from chat_app.settings import TESTING
+from django.db.models import Q
 
 
 
@@ -26,7 +27,7 @@ class ChatRoomConsumer(WebsocketConsumer):
             self.accept()
 
             messages = Message.objects.filter(chat_room=self.chatroom).order_by('send_date')
-            message_list = {'event': 'total_messages', 'messages': [serialize_message(m) for m in messages]}
+            message_list = {'event': 'message', 'messages': [serialize_message(m) for m in messages]}
             self.send(text_data=json.dumps(message_list))
 
         else:
@@ -76,7 +77,6 @@ class ChatRoomConsumer(WebsocketConsumer):
                     text_data_json['file_extension']
                 )
 
-
             context = {
                 'type': 'chatroom_message',
                 'message': message,
@@ -88,10 +88,14 @@ class ChatRoomConsumer(WebsocketConsumer):
     def chatroom_message(self, event):
         message = event['message']
 
-        data = serialize_message(message)
-        data['event'] = "new_message"
+        messages = serialize_message(message)
+        data = {
+            'event': "message",
+            'messages': [messages]
+        }
 
-        text_data = json.dumps([data])
+
+        text_data = json.dumps(data)
         self.send(text_data=text_data)
 
     def delete_message(self, event):
@@ -102,4 +106,96 @@ class ChatRoomConsumer(WebsocketConsumer):
             self.send(text_data=text_data)
 
 
+class UserChats(WebsocketConsumer):
 
+    @staticmethod
+    def get_channel_group_name(user):
+        return f'user_chats_{user.phone_number}'
+
+    @staticmethod
+    def user_chat_rooms(user):
+        channels = Channels.objects.filter(chatroom_member__member=user).values(
+            'chat_room_id',
+            'title',
+            'chatroom_member__role'
+        )
+        groups = GroupChat.objects.filter(chatroom_member__member=user).values(
+            'chat_room_id'
+            , 'title',
+            'chatroom_member__role'
+        )
+
+        directs = ChatRoom_Member.objects.filter(
+            member=user,
+            chat_room__chat_room_type='direct',
+        ).select_related('chat_room')
+
+        chatrooms = list()
+        for i in channels:
+            data = {
+                'chatroom_id': i['chat_room_id'],
+                'chatroom_type': 'channel',
+                'chatroom_title': i['title'],
+                'user_role': i['chatroom_member__role']
+            }
+            chatrooms.append(data)
+
+        for i in groups:
+            data = {
+                'chatroom_id': i['chat_room_id'],
+                'chatroom_type': 'group',
+                'chatroom_title': i['title'],
+                'user_role': i['chatroom_member__role']
+            }
+            chatrooms.append(data)
+
+
+        for i in directs:
+            data = {
+                'chatroom_id': i.chat_room.chat_room_id,
+                'chatroom_type': 'direct',
+                'chatroom_title': ChatRoom_Member.objects.filter(
+                    Q(chat_room=i.chat_room) & ~Q(member=i.member)
+                ).select_related('member').first().member.email,
+                'user_role': i.role
+            }
+            chatrooms.append(data)
+
+        return chatrooms
+
+
+
+    def connect(self):
+        self.user = self.scope['user']
+        if not self.user:
+            self.close()
+
+        else:
+            self.accept()
+            async_to_sync(self.channel_layer.group_add)(UserChats.get_channel_group_name(self.user), self.channel_name)
+            context = {
+                'type': 'user_chat_list',
+                'chats': UserChats.user_chat_rooms(self.user)
+            }
+            async_to_sync(self.channel_layer.group_send)(UserChats.get_channel_group_name(self.user), context)
+
+
+
+    def user_chat_list(self, event):
+        chats = event['chats']
+        data = {
+            'event': 'chat_list',
+            'chats': chats
+        }
+        text_data = json.dumps(data)
+        print(text_data)
+        self.send(text_data=text_data)
+
+
+
+    def disconnect(self, close_code):
+        try:
+            async_to_sync(self.channel_layer.group_discard)(self.room_group_name, self.channel_name)
+        except AttributeError:
+            pass
+        self.close()
