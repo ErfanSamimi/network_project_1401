@@ -1,9 +1,10 @@
 import base64
 import json
 import pathlib
-
+from channels.auth import login, logout
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+from django.contrib.auth import authenticate
 from django.db.models import Q
 from chat_app.settings import TESTING
 from core.models import ChatRoom, Message, User, ChatRoom_Member
@@ -12,19 +13,31 @@ from core.models import ChatRoom, Message, User, ChatRoom_Member
 class RegisterUser(WebsocketConsumer):
 
     def receive(self, text_data):
+
+        """
+            text_data = {
+            "email": "test@test.com",
+            "phone_number": "09131234567",
+            "password": "password"
+        }
+        """
         text_data_json = json.loads(text_data)
 
         user = User.objects.filter(
             Q(email=text_data_json['email']) |
-            Q(phone_number=text_data_json['phone_number']) |
-            Q(user_id=text_data_json['user_id'])
+            Q(phone_number=text_data_json['phone_number'])
         )
         if user.exists():
             self.send(text_data=json.dumps({'evnet': 'error', 'description': "A user exists with this values"}))
 
         else:
             try:
-                user = User.objects.create_user(**text_data_json)
+                user = User.objects.create_user(
+                    email=text_data_json['email'],
+                    phone_number=text_data_json['phone_number'],
+                    password=text_data_json['password']
+                )
+
                 self.send(text_data=json.dumps({'event': 'add_user', 'description': "User created"}))
             except:
                 self.send(text_data=json.dumps({'event': 'error', 'description': "Bad Parameters!"}))
@@ -88,11 +101,6 @@ class SendVoice(SendImage):
         return message.voice
 
 
-
-
-
-
-
 class DeleteMessage(WebsocketConsumer):
     def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
@@ -131,8 +139,6 @@ class DeleteMessage(WebsocketConsumer):
         else:
             print("Rejected...")
             self.close()
-
-
 
 
     def delete_message(self, event):
