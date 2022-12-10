@@ -15,7 +15,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -24,9 +23,8 @@ SECRET_KEY = 'django-insecure-pwea)b&)t3jxt$eme=ox&%s1ko@p$9pcfbvdc!3&+h@#4#_qy=
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-TESTING = True
+TESTING = False
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -57,7 +55,9 @@ ROOT_URLCONF = 'chat_app.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -72,7 +72,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'chat_app.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -82,7 +81,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -102,7 +100,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -114,11 +111,15 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'templates'),
+]
 
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -129,12 +130,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'core.User'
 
-ASGI_APPLICATION = "chat_app.routing.application"
-
-
+# ASGI_APPLICATION = "chat_app.routing.application"
+ASGI_APPLICATION = "chat_app.asgi.application"
 
 CHANNEL_LAYERS = {
-    'default':{
+    'default': {
         "BACKEND": "channels.layers.InMemoryChannelLayer"
     }
 }
