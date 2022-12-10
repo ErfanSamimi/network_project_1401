@@ -15,8 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from chat_app.settings import DEBUG, STATIC_ROOT, STATIC_URL
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('chat/', include('chat.urls'))
+    # path('chat/', include('chat.urls')),
+    path('', include('core.urls')),
 ]
+
+if DEBUG:
+    urlpatterns += static(STATIC_URL, document_root=STATIC_ROOT)
