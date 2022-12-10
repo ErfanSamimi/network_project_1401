@@ -6,7 +6,7 @@ def serialize_message(instance: Message):
         data = {
             'message_type': instance.type,
             'sender': instance.sender.email,
-            'data': instance.send_date.isoformat(),
+            'date': instance.send_date.isoformat(),
         }
     except:
         print(instance.send_date)
