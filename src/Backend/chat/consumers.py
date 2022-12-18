@@ -7,6 +7,19 @@ from chat_app.settings import TESTING
 from django.db.models import Q
 
 
+class GroupCreation(WebsocketConsumer):
+    def connect(self):
+        self.user = self.scope['user']
+        if user.is_authenticated and user.is_email_verified:
+            self.accept()
+
+    def receive(self, text_data):
+        data = json.loads(text_data)
+        group_name = data['group_name']
+        GroupChat.objects.create(group_name, creator=self.user)
+        self.send(text_data=json.dumps(
+            {'description': 'group creation was successful'}))
+
 
 class ChatRoomConsumer(WebsocketConsumer):
     def connect(self):
@@ -17,32 +30,34 @@ class ChatRoomConsumer(WebsocketConsumer):
         if TESTING:
             self.user = User.objects.get(id=12)
 
-        temp = ChatRoom_Member.objects.filter(chat_room__chat_room_id=self.room_name, member=self.user)
+        temp = ChatRoom_Member.objects.filter(
+            chat_room__chat_room_id=self.room_name, member=self.user)
 
         if temp:
             self.chatroom = temp.first().chat_room
             self.room_group_name = f'{self.chatroom.chat_room_type}_{self.room_name}'
-            async_to_sync(self.channel_layer.group_add)(self.room_group_name, self.channel_name)
+            async_to_sync(self.channel_layer.group_add)(
+                self.room_group_name, self.channel_name)
             print("Accepted...")
             self.accept()
 
-            messages = Message.objects.filter(chat_room=self.chatroom).order_by('send_date')
-            message_list = {'event': 'message', 'messages': [serialize_message(m) for m in messages]}
+            messages = Message.objects.filter(
+                chat_room=self.chatroom).order_by('send_date')
+            message_list = {'event': 'message', 'messages': [
+                serialize_message(m) for m in messages]}
             self.send(text_data=json.dumps(message_list))
 
         else:
             print("Rejected...")
             self.close()
 
-
     def disconnect(self, close_code):
         try:
-            async_to_sync(self.channel_layer.group_discard)(self.room_group_name, self.channel_name)
+            async_to_sync(self.channel_layer.group_discard)(
+                self.room_group_name, self.channel_name)
         except AttributeError:
             pass
         self.close()
-
-
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
@@ -55,14 +70,17 @@ class ChatRoomConsumer(WebsocketConsumer):
         ).first().role
 
         if member_role == 'muted':
-            self.send(text_data=json.dumps({'event': 'error', 'description': "You are muted !"}))
+            self.send(text_data=json.dumps(
+                {'event': 'error', 'description': "You are muted !"}))
 
         elif message_type not in Message.MESSAGE_TYPES:
-            self.send(text_data=json.dumps({'event': 'error', 'description': 'Bad message type !'}))
+            self.send(text_data=json.dumps(
+                {'event': 'error', 'description': 'Bad message type !'}))
 
         else:
             if message_type == 'text':
-                message = Message.objects.create_text_message(self.user, self.chatroom, text_data_json['text'])
+                message = Message.objects.create_text_message(
+                    self.user, self.chatroom, text_data_json['text'])
 
             elif message_type == 'image':
                 message = Message.objects.create_image_message(
@@ -81,9 +99,8 @@ class ChatRoomConsumer(WebsocketConsumer):
                 'type': 'chatroom_message',
                 'message': message,
             }
-            async_to_sync(self.channel_layer.group_send)(self.room_group_name, context)
-
-
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name, context)
 
     def chatroom_message(self, event):
         message = event['message']
@@ -94,16 +111,15 @@ class ChatRoomConsumer(WebsocketConsumer):
             'messages': [messages]
         }
 
-
         text_data = json.dumps(data)
         self.send(text_data=text_data)
 
     def delete_message(self, event):
-            message_id = event['message_id']
-            data = {'event': "delete_message", 'message_id': message_id}
+        message_id = event['message_id']
+        data = {'event': "delete_message", 'message_id': message_id}
 
-            text_data = json.dumps([data])
-            self.send(text_data=text_data)
+        text_data = json.dumps([data])
+        self.send(text_data=text_data)
 
 
 class UserChats(WebsocketConsumer):
@@ -120,8 +136,7 @@ class UserChats(WebsocketConsumer):
             'chatroom_member__role'
         )
         groups = GroupChat.objects.filter(chatroom_member__member=user).values(
-            'chat_room_id'
-            , 'title',
+            'chat_room_id', 'title',
             'chatroom_member__role'
         )
 
@@ -149,7 +164,6 @@ class UserChats(WebsocketConsumer):
             }
             chatrooms.append(data)
 
-
         for i in directs:
             data = {
                 'chatroom_id': i.chat_room.chat_room_id,
@@ -163,8 +177,6 @@ class UserChats(WebsocketConsumer):
 
         return chatrooms
 
-
-
     def connect(self):
         self.user = self.scope['user']
         if not self.user:
@@ -172,14 +184,14 @@ class UserChats(WebsocketConsumer):
 
         else:
             self.accept()
-            async_to_sync(self.channel_layer.group_add)(UserChats.get_channel_group_name(self.user), self.channel_name)
+            async_to_sync(self.channel_layer.group_add)(
+                UserChats.get_channel_group_name(self.user), self.channel_name)
             context = {
                 'type': 'user_chat_list',
                 'chats': UserChats.user_chat_rooms(self.user)
             }
-            async_to_sync(self.channel_layer.group_send)(UserChats.get_channel_group_name(self.user), context)
-
-
+            async_to_sync(self.channel_layer.group_send)(
+                UserChats.get_channel_group_name(self.user), context)
 
     def user_chat_list(self, event):
         chats = event['chats']
@@ -191,11 +203,10 @@ class UserChats(WebsocketConsumer):
         print(text_data)
         self.send(text_data=text_data)
 
-
-
     def disconnect(self, close_code):
         try:
-            async_to_sync(self.channel_layer.group_discard)(self.room_group_name, self.channel_name)
+            async_to_sync(self.channel_layer.group_discard)(
+                self.room_group_name, self.channel_name)
         except AttributeError:
             pass
         self.close()

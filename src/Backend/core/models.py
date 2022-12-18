@@ -37,13 +37,15 @@ class UserManager(BaseUserManager):
         if not password:
             raise ValueError("User must have a password")
 
-        instance = self.model(email=email, phone_number=phone_number, **extra_fields)
+        instance = self.model(
+            email=email, phone_number=phone_number, **extra_fields)
         instance.set_password(password)
         instance.save()
         return instance
 
     def create_superuser(self, email, phone_number, password):
-        user = self.create_user(email=email, phone_number=phone_number, password=password)
+        user = self.create_user(
+            email=email, phone_number=phone_number, password=password)
         user.is_admin = True
         user.is_superuser = True
         user.is_staff = True
@@ -53,7 +55,8 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
-    phone_number = models.CharField(unique=True, max_length=11, validators=[validate_phone_number])
+    phone_number = models.CharField(
+        unique=True, max_length=11, validators=[validate_phone_number])
     user_id = models.CharField(max_length=20, unique=True, null=True)
 
     first_name = models.CharField(max_length=50)
@@ -78,14 +81,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
-
 class ChatroomManager(models.Manager):
     def create(self):
         chat_room_id = get_random_string(50)
         while super().get_queryset().filter(chat_room_id=chat_room_id).exists():
             chat_room_id = get_random_string(50)
 
-        instance = self.model(chat_room_id=chat_room_id, chat_room_type='direct')
+        instance = self.model(chat_room_id=chat_room_id,
+                              chat_room_type='direct')
         instance.save()
         return instance
 
@@ -98,16 +101,18 @@ class ChatroomManager(models.Manager):
             raise ChatRoomExistsError("A direct chat exists for these users")
 
         instance = self.create()
-        ChatRoom_Member.objects.create(chat_room=instance, member=member1, role='member')
-        ChatRoom_Member.objects.create(chat_room=instance, member=member2, role='member')
+        ChatRoom_Member.objects.create(
+            chat_room=instance, member=member1, role='member')
+        ChatRoom_Member.objects.create(
+            chat_room=instance, member=member2, role='member')
         return instance
-
 
 
 class ChatRoom(models.Model):
     CHATROOM_TYPES = ['direct', 'group', 'channel']
     __type_choices = [(x, x) for x in CHATROOM_TYPES]
-    chat_room_type = models.CharField(max_length=10, choices=__type_choices, default='direct')
+    chat_room_type = models.CharField(
+        max_length=10, choices=__type_choices, default='direct')
     chat_room_id = models.CharField(max_length=50, unique=True)
     create_date = models.DateTimeField(auto_now_add=True)
     update_date = models.DateTimeField(auto_now=True)
@@ -118,13 +123,14 @@ class ChatRoom(models.Model):
         return self.chat_room_id
 
 
-class GroupChatManger(ChatroomManager):
+class GroupChatManager(ChatroomManager):
     def create(self, group_name, creator):
         instance = super().create()
         instance.chat_room_type = 'group'
         instance.title = group_name
         instance.save(update_fields=('chat_room_type', 'title'))
-        ChatRoom_Member.objects.create(chat_room=instance, member=creator, role='creator')
+        ChatRoom_Member.objects.create(
+            chat_room=instance, member=creator, role='creator')
         return instance
 
     def create_direct_chat(self, member1, member2):
@@ -133,11 +139,10 @@ class GroupChatManger(ChatroomManager):
 
 class GroupChat(ChatRoom):
     title = models.CharField(max_length=50)
-    objects = GroupChatManger()
+    objects = GroupChatManager()
 
 
-
-class ChannelsManager(GroupChatManger):
+class ChannelsManager(GroupChatManager):
     def create(self, channel_name, creator):
         instance = super().create(channel_name, creator)
         instance.chat_room_type = 'channel'
@@ -150,13 +155,14 @@ class Channels(ChatRoom):
     objects = ChannelsManager()
 
 
-class ChatRoom_MemberManger(models.Manager):
+class ChatRoom_MemberManager(models.Manager):
     def add_channel_member(self, chat_room, user, role):
         if chat_room.chat_room_type != 'channel':
             raise NotChannelError('This chatroom is not a channel')
 
         if role not in ['admin', 'muted']:
-            raise InvalidRole("User must has on of these roles: ['admin', 'muted']")
+            raise InvalidRole(
+                "User must has on of these roles: ['admin', 'muted']")
 
         temp = super().get_queryset().filter(chat_room=chat_room, member=user)
 
@@ -170,14 +176,16 @@ class ChatRoom_MemberManger(models.Manager):
             instance.save()
             return instance
         else:
-            raise AlreadyExistsInChatroom("This user exists in this channel with given role")
+            raise AlreadyExistsInChatroom(
+                "This user exists in this channel with given role")
 
     def add_group_member(self, chat_room, user, role):
         if chat_room.chat_room_type != 'group':
             raise NotGroupError('This chatroom is not a group')
 
         if role not in ['admin', 'muted', 'member']:
-            raise InvalidRole("User must has on of these roles: ['admin', 'muted', 'member']")
+            raise InvalidRole(
+                "User must has on of these roles: ['admin', 'muted', 'member']")
 
         temp = super().get_queryset().filter(chat_room=chat_room, member=user)
 
@@ -191,7 +199,8 @@ class ChatRoom_MemberManger(models.Manager):
             instance.save()
             return instance
         else:
-            raise AlreadyExistsInChatroom("This user exists in this group with given role")
+            raise AlreadyExistsInChatroom(
+                "This user exists in this group with given role")
 
 
 class ChatRoom_Member(models.Model):
@@ -201,9 +210,10 @@ class ChatRoom_Member(models.Model):
     member = models.ForeignKey(User, on_delete=models.CASCADE)
 
     __role_choices = [(x, x) for x in MEMBER_ROLES]
-    role = models.CharField(choices=__role_choices, default='member', max_length=10)
+    role = models.CharField(choices=__role_choices,
+                            default='member', max_length=10)
 
-    objects = ChatRoom_MemberManger()
+    objects = ChatRoom_MemberManager()
 
     class Meta:
         unique_together = ('chat_room', 'member')
@@ -215,30 +225,34 @@ class ChatRoom_Member(models.Model):
 def image_message_path(instance, filename):
     ext = filename.split('.')[-1]
     return os.path.join(
-        "image_messages", str(instance.sender.id), str(instance.chat_room.id), f'{round(time.time() * 1000)}.{ext}'
+        "image_messages", str(instance.sender.id), str(
+            instance.chat_room.id), f'{round(time.time() * 1000)}.{ext}'
     )
 
 
 def file_message_path(instance, filename):
     ext = filename.split('.')[-1]
     return os.path.join(
-        "file_messages", str(instance.sender.id), str(instance.chat_room.id), f'{round(time.time() * 1000)}.{ext}'
+        "file_messages", str(instance.sender.id), str(
+            instance.chat_room.id), f'{round(time.time() * 1000)}.{ext}'
     )
 
 
-class MessageManger(models.Manager):
+class MessageManager(models.Manager):
 
     def __create_media_message(self, sender, chat_room, base64_file_data: str, file_extension: str):
         instance = self.model(sender=sender, chat_room=chat_room)
         base64_bytes = base64_file_data.encode('utf-8')
-        temp_file_path = os.path.join(BASE_DIR, 'temp', f'{sender.id}-{round(time.time() * 1000)}.{file_extension}')
+        temp_file_path = os.path.join(
+            BASE_DIR, 'temp', f'{sender.id}-{round(time.time() * 1000)}.{file_extension}')
         with open(temp_file_path, 'wb') as file:
             file.write(base64.decodebytes(base64_bytes))
 
         return instance, temp_file_path
 
     def create_image_message(self, sender, chat_room, image_base64_data: str, file_extension: str):
-        instance, temp_file_path = self.__create_media_message(sender, chat_room, image_base64_data, file_extension)
+        instance, temp_file_path = self.__create_media_message(
+            sender, chat_room, image_base64_data, file_extension)
         instance.type = 'image'
         instance.text = None
         instance.voice = None
@@ -250,7 +264,8 @@ class MessageManger(models.Manager):
         return instance
 
     def create_voice_message(self, sender, chat_room, voice_base64_data: str, file_extension: str):
-        instance, temp_file_path = self.__create_media_message(sender, chat_room, voice_base64_data, file_extension)
+        instance, temp_file_path = self.__create_media_message(
+            sender, chat_room, voice_base64_data, file_extension)
         instance.type = 'voice'
         instance.text = None
         instance.image = None
@@ -261,7 +276,8 @@ class MessageManger(models.Manager):
         return instance
 
     def create_text_message(self, sender, chat_room, text):
-        instance = self.model(sender=sender, chat_room=chat_room, text=text, type='text', voice=None, image=None)
+        instance = self.model(sender=sender, chat_room=chat_room,
+                              text=text, type='text', voice=None, image=None)
         instance.save()
         return instance
 
@@ -270,7 +286,8 @@ class Message(models.Model):
     MESSAGE_TYPES = ['text', 'image', 'voice']
 
     __message_choices = [(x, x) for x in MESSAGE_TYPES]
-    type = models.CharField(max_length=10, choices=__message_choices, default='text')
+    type = models.CharField(
+        max_length=10, choices=__message_choices, default='text')
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
 
     text = models.TextField(null=True)
@@ -280,8 +297,7 @@ class Message(models.Model):
     chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
     send_date = models.DateTimeField(auto_now_add=True)
 
-    objects = MessageManger()
+    objects = MessageManager()
 
     def __str__(self):
         return self.chat_room.chat_room_id
-
