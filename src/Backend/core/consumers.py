@@ -6,6 +6,8 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import authenticate
 from django.db.models import Q
+
+from chat_app import settings
 from chat_app.settings import TESTING
 from core.models import ChatRoom, Message, User, ChatRoom_Member
 
@@ -41,7 +43,6 @@ class RegisterUser(WebsocketConsumer):
                 self.send(text_data=json.dumps({'event': 'add_user', 'description': "User created"}))
             except:
                 self.send(text_data=json.dumps({'event': 'error', 'description': "Bad Parameters!"}))
-
 
 
 class SendImage(WebsocketConsumer):
@@ -147,3 +148,44 @@ class DeleteMessage(WebsocketConsumer):
 
             text_data = json.dumps([data])
             self.send(text_data=text_data)
+
+
+class UserSearch(WebsocketConsumer):
+    def connect(self):
+        self.user = self.scope['user']
+
+        if settings.TESTING:
+            self.accept()
+
+        if not self.user:
+            self.close()
+        else:
+            self.accept()
+
+
+    def receive(self, text_data=None, bytes_data=None):
+        json_data = json.loads(text_data)
+        keyword = json_data.get('keyword')
+
+        if keyword and keyword[0] == '@':
+            users = User.objects.filter(user_id__contains=keyword[1:])
+            data = {
+                'event': 'search-result',
+                'users': [
+                    {'username': u.user_id, 'phone_number': u.phone_number} for u in users
+                ]
+            }
+            self.send(json.dumps(data))
+
+        elif keyword:
+            users = User.objects.filter(phone_number__contains=keyword)
+            data = {
+                'event': 'search-result',
+                'users': [
+                    {'username': u.user_id, 'phone_number': u.phone_number} for u in users
+                ]
+            }
+            self.send(json.dumps(data))
+
+        else:
+            self.send(json.dumps({'event': "error", 'description': "invalid keyword"}))
