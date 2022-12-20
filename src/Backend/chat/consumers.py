@@ -210,6 +210,7 @@ class UserChats(WebsocketConsumer):
         except AttributeError:
             pass
         self.close()
+
 class ChannelCreation(WebsocketConsumer):
     def connect(self):
         self.user = self.scope['user']
@@ -222,3 +223,26 @@ class ChannelCreation(WebsocketConsumer):
         Channels.objects.create(channel_name, creator=self.user)
         self.send(text_data=json.dumps(
             {'description': 'channel creation was successful'}))
+
+class AddMember(WebsocketConsumer):
+
+    def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.chat_room = None
+        self.user = self.scope['user']
+        if self.user.is_authenticated and self.user.is_email_verified:
+            ch_member = ChatRoom_Member.objects.filter(member=self.user, role__in=['admin','creator'])
+            if ch_member.exists():
+                self.accept()
+                self.chat_room = ch_member.first()
+
+    def receive(self, text_data):
+        data = json.loads(text_data)
+        user_email = data ['email']
+        user_role = data ['role']
+        user = User.objects.filter(email = user_email)
+        if self.chat_room.chat_room_type == 'group':
+            ChatRoom_Member.objects.add_group_member(self.chat_room, user.first(), user_role)
+        elif self.chat_room.chat_room_type == 'channels':
+            ChatRoom_Member.objects.add_channel_member(self.chat_room, user.first(), user_role)
+        self.send(text_data = json.dumps({'event' : 'member_added'}))
