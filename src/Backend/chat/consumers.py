@@ -10,7 +10,7 @@ from django.db.models import Q
 class GroupCreation(WebsocketConsumer):
     def connect(self):
         self.user = self.scope['user']
-        if user.is_authenticated and user.is_email_verified:
+        if self.user.is_authenticated and self.user.is_email_verified:
             self.accept()
 
     def receive(self, text_data):
@@ -210,3 +210,15 @@ class UserChats(WebsocketConsumer):
         except AttributeError:
             pass
         self.close()
+class ChannelCreation(WebsocketConsumer):
+    def connect(self):
+        self.user = self.scope['user']
+        if self.user.is_authenticated and self.user.is_email_verified:
+            self.accept()
+
+    def receive(self, text_data):
+        data = json.loads(text_data)
+        channel_name = data['channel_name']
+        Channels.objects.create(channel_name, creator=self.user)
+        self.send(text_data=json.dumps(
+            {'description': 'channel creation was successful'}))

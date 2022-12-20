@@ -7,4 +7,5 @@ websocket_urlpatterns = [
          consumers.ChatRoomConsumer.as_asgi()),
     path('ws/chat/userchats/', consumers.UserChats.as_asgi()),
     path('ws/group/create/', consumers.GroupCreation.as_asgi()),
+    path('ws/channel/create/', consumers.ChannelCreation.as_asgi()),
 ]
