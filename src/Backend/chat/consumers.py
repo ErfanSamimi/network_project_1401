@@ -246,3 +246,38 @@ class AddMember(WebsocketConsumer):
         elif self.chat_room.chat_room_type == 'channels':
             ChatRoom_Member.objects.add_channel_member(self.chat_room, user.first(), user_role)
         self.send(text_data = json.dumps({'event' : 'member_added'}))
+
+class RemoveMember(WebsocketConsumer):
+    def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.chatroom_member = None
+        self.user = self.scope['user']
+
+        if self.user.is_authenticated and self.user.is_email_verified:
+            ch_member = ChatRoom_Member.objects.filter(
+                member=self.user, role__in=['admin', 'creator'], chat_room__chat_room_id=self.room_name
+            )
+            if ch_member.exists() and ch_member.first().chat_room.chat_room_type in ['group', 'channel']:
+                self.accept()
+                self.chatroom_member = ch_member.first()
+
+    def receive(self, text_data):
+        data = json.loads(text_data)
+        phone_numbers = data['phone_numbers']
+
+        try:
+            phone_numbers.remove(self.chatroom_member.member.phone_number)
+        except:
+            pass
+
+        if self.chatroom_member.role == 'creator':
+            members = ChatRoom_Member.objects.filter(
+                member__phone_number__in=phone_numbers, chat_room__chat_room_id=self.room_name
+            )
+        else:
+            members = ChatRoom_Member.objects.filter(
+                ~Q(role__in=['admin']), member__phone_number__in=phone_numbers, chat_room__chat_room_id=self.room_name
+            )
+
+        if members:
+            members.delete()
