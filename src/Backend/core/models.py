@@ -81,6 +81,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
+
 class ChatroomManager(models.Manager):
     def create(self):
         chat_room_id = get_random_string(50)
@@ -164,7 +165,7 @@ class ChatRoom_MemberManager(models.Manager):
             raise InvalidRole(
                 "User must has on of these roles: ['admin', 'muted']")
 
-        temp = super().get_queryset().filter(chat_room=chat_room, member=user)
+        temp = super().get_queryset().filter(chat_room=chat_room, member=user, role__in=['admin', 'member', 'muted'])
 
         if temp.exists() and temp.first().role != role:
             instance = temp.first()
@@ -187,7 +188,7 @@ class ChatRoom_MemberManager(models.Manager):
             raise InvalidRole(
                 "User must has on of these roles: ['admin', 'muted', 'member']")
 
-        temp = super().get_queryset().filter(chat_room=chat_room, member=user)
+        temp = super().get_queryset().filter(chat_room=chat_room, member=user, role__in=['admin', 'member', 'muted'])
 
         if temp.exists() and temp.first().role != role:
             instance = temp.first()

@@ -26,6 +26,7 @@ DEBUG = True
 TESTING = False
 ALLOWED_HOSTS = []
 
+LOGIN_URL = '/user/auth/'
 # Application definition
 
 INSTALLED_APPS = [
