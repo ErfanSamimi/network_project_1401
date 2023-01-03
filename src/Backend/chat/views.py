@@ -6,3 +6,7 @@ from django.shortcuts import render
 def chatroom_creation(request):
     return render(request, 'chatroom-creation/chatroom_creation.html')
 
+
+@login_required
+def chatroom_management(request):
+    return render(request, 'chatroom-management/chat_management.html')
