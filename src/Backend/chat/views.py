@@ -1,8 +1,8 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 
+@login_required
+def chatroom_creation(request):
+    return render(request, 'chatroom-creation/chatroom_creation.html')
 
-def room(request, room_name):
-    return render(request, 'chatroom.html', {
-        'room_name': room_name
-    })
