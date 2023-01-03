@@ -45,71 +45,45 @@ class RegisterUser(WebsocketConsumer):
                 self.send(text_data=json.dumps({'event': 'error', 'description': "Bad Parameters!"}))
 
 
-class SendImage(WebsocketConsumer):
-
-
-    def get_message_queryset(self, chatroom, message_id):
-        return Message.objects.filter(chat_room=chatroom, id=message_id, type='image')
-
-    def get_file(self, message):
-        return message.image
-
+class SendMedia(WebsocketConsumer):
     def connect(self):
-        room_name = self.scope['url_route']['kwargs']['room_name']
-        message_id = self.scope['url_route']['kwargs']['message_id']
-        user = self.scope['user']
-
-        if TESTING:
-            user = User.objects.get(id=12)
-
-        temp = ChatRoom_Member.objects.filter(chat_room__chat_room_id=room_name, member=user)
-
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.user = self.scope['user']
+        temp = ChatRoom_Member.objects.filter(chat_room__chat_room_id=self.room_name, member=self.user)
         if temp:
-            chatroom = temp.first().chat_room
-            print("Accepted...")
+            self.chatroom = temp.first().chat_room
             self.accept()
-            messages = self.get_message_queryset(chatroom, message_id)
 
-            if not messages:
-                data = {'event': 'error', 'description': 'No file found with this id for given chatroom'}
-                self.send(text_data=json.dumps(data))
+    def receive(self, text_data=None, bytes_data=None):
+        json_data = json.loads(text_data)
+        message_id = json_data['message_id']
+        messages = Message.objects.filter(chat_room__chat_room_id=self.room_name, id=message_id)
+        if messages.exists() and messages.first().type in ['voice', 'image']:
+            message = messages.first()
+            if message.type == 'voice':
+                file = message.voice
             else:
-                message = messages.first()
-                file = self.get_file(message)
-                img = file.read()
+                file = message.image
 
-                base64_bytes = base64.b64encode(img)
-                base64_string = base64_bytes.decode('utf-8')
-                data = {'event': 'file_contents',
-                        'message_id': message.id,
-                        'file_name': pathlib.PurePath(file.path).name,
-                        'data': base64_string
-                        }
+            file_data = file.read()
 
-                self.send(text_data=json.dumps(data))
+            base64_bytes = base64.b64encode(file_data)
+            base64_string = base64_bytes.decode('utf-8')
+            data = {'event': 'file_contents',
+                    'message_id': message.id,
+                    'file_name': pathlib.PurePath(file.path).name,
+                    'data': base64_string
+                    }
 
+            self.send(text_data=json.dumps(data))
         else:
-            print("Rejected...")
-
-        self.close()
-
-
-class SendVoice(SendImage):
-    def get_message_queryset(self, chatroom, message_id):
-        return Message.objects.filter(chat_room=chatroom, id=message_id, type='voice')
-
-    def get_file(self, message):
-        return message.voice
+            self.send(text_data=json.dumps({'event': 'error', 'description': "Invalid message id"}))
 
 
 class DeleteMessage(WebsocketConsumer):
     def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.message_id = self.scope['url_route']['kwargs']['message_id']
         self.user = self.scope['user']
-
-        if TESTING:
-            self.user = User.objects.get(id=12)
 
         temp = ChatRoom_Member.objects.filter(chat_room__chat_room_id=self.room_name, member=self.user)
 
@@ -122,32 +96,47 @@ class DeleteMessage(WebsocketConsumer):
             print("Accepted...")
             self.accept()
 
-            messages = Message.objects.filter(chat_room=self.chatroom, sender=self.user, id=self.message_id)
-
-            if messages.exists():
-                message = messages.first()
-                message.delete()
-                context = {
-                    'type': 'delete_message',
-                    'message_id': self.message_id,
-                }
-                async_to_sync(self.channel_layer.group_send)(self.room_group_name, context)
-
-            else:
-                data = {'event': 'error', 'description': 'No message found with this id !'}
-                self.send(text_data=json.dumps(data))
-
         else:
             print("Rejected...")
             self.close()
 
 
+    def receive(self, text_data=None, bytes_data=None):
+        json_data = json.loads(text_data)
+        message_id = json_data['message_id']
+        messages = Message.objects.filter(chat_room=self.chatroom, sender=self.user, id=message_id)
+
+        if messages.exists():
+            message = messages.first()
+            message.delete()
+            context = {
+                'type': 'delete_message',
+                'message_id': message_id,
+            }
+            async_to_sync(self.channel_layer.group_send)(self.room_group_name, context)
+
+        else:
+            data = {'event': 'error', 'description': 'No message found with this id !'}
+            self.send(text_data=json.dumps(data))
+
     def delete_message(self, event):
             message_id = event['message_id']
             data = {'event': "delete_message", 'message_id': message_id}
 
-            text_data = json.dumps([data])
+            text_data = json.dumps(data)
             self.send(text_data=text_data)
+
+    def chatroom_message(self, event):
+        message = event['message']
+
+        messages = serialize_message(message)
+        data = {
+            'event': "message",
+            'messages': [messages]
+        }
+
+        text_data = json.dumps(data)
+        self.send(text_data=text_data)
 
 
 class UserSearch(WebsocketConsumer):
@@ -178,7 +167,7 @@ class UserSearch(WebsocketConsumer):
             self.send(json.dumps(data))
 
         elif keyword:
-            users = User.objects.filter(phone_number__contains=keyword)
+            users = User.objects.filter(phone_number__contains=keyword, show_phone_number=True)
             data = {
                 'event': 'search-result',
                 'users': [
@@ -189,3 +178,4 @@ class UserSearch(WebsocketConsumer):
 
         else:
             self.send(json.dumps({'event': "error", 'description': "invalid keyword"}))
+
