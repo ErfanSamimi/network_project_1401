@@ -7,18 +7,53 @@ from chat_app.settings import TESTING
 from django.db.models import Q
 
 
-class GroupCreation(WebsocketConsumer):
+class ChatroomCreation(WebsocketConsumer):
     def connect(self):
         self.user = self.scope['user']
         if self.user.is_authenticated and self.user.is_email_verified:
             self.accept()
 
-    def receive(self, text_data):
+
+    def receive(self, text_data=None, bytes_data=None):
         data = json.loads(text_data)
-        group_name = data['group_name']
-        GroupChat.objects.create(group_name, creator=self.user)
-        self.send(text_data=json.dumps(
-            {'description': 'group creation was successful'}))
+        chatroom_type = data['chatroom_type']
+        if chatroom_type not in ChatRoom.CHATROOM_TYPES:
+            self.send(text_data=json.dumps({"event": "error", "description": "Invalid chatroom type."}))
+
+        elif chatroom_type == 'group':
+            group_name = data['group_name']
+            GroupChat.objects.create(group_name, creator=self.user)
+            self.send(text_data=json.dumps(
+                {'event': 'group_creation', 'description': 'group creation was successful'})
+            )
+
+        elif chatroom_type == 'channel':
+            channel_name = data['channel_name']
+            Channels.objects.create(channel_name, creator=self.user)
+            self.send(text_data=json.dumps(
+                {'event': 'channel_creation', 'description': 'channel creation was successful'})
+            )
+
+
+        elif chatroom_type == 'direct':
+            member2_phone_number = data['phone_number']
+            member2 = User.objects.filter(phone_number=member2_phone_number, is_email_verified=True)
+            if member2.exists():
+                try:
+                    ChatRoom.objects.create_direct_chat(self.user, member2.first())
+                    self.send(text_data=json.dumps(
+                        {'event': 'direct_creation', 'description': 'Direct chat creation was successful'})
+                    )
+
+                except ChatRoomExistsError:
+                    self.send(text_data=json.dumps(
+                        {'event': 'error', 'description': 'A direct chat exists for these users'})
+                    )
+
+            else:
+                self.send(text_data=json.dumps(
+                    {'event': 'error', 'description': 'Invalid user!'})
+                )
 
 
 class ChatRoomConsumer(WebsocketConsumer):
@@ -210,19 +245,6 @@ class UserChats(WebsocketConsumer):
         except AttributeError:
             pass
         self.close()
-
-class ChannelCreation(WebsocketConsumer):
-    def connect(self):
-        self.user = self.scope['user']
-        if self.user.is_authenticated and self.user.is_email_verified:
-            self.accept()
-
-    def receive(self, text_data):
-        data = json.loads(text_data)
-        channel_name = data['channel_name']
-        Channels.objects.create(channel_name, creator=self.user)
-        self.send(text_data=json.dumps(
-            {'description': 'channel creation was successful'}))
 
 class AddMember(WebsocketConsumer):
 
