@@ -1,15 +1,20 @@
 import base64
 import json
+import os
 import pathlib
+import time
+
 from channels.auth import login, logout
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.contrib.auth import authenticate
 from django.db.models import Q
+from django.core.files import File
 
 from chat_app import settings
-from chat_app.settings import TESTING
+from chat_app.settings import TESTING, BASE_DIR
 from core.models import ChatRoom, Message, User, ChatRoom_Member
+from core.serializer import serialize_message
 
 
 class RegisterUser(WebsocketConsumer):
@@ -178,4 +183,115 @@ class UserSearch(WebsocketConsumer):
 
         else:
             self.send(json.dumps({'event': "error", 'description': "invalid keyword"}))
+
+
+class EditProfile(WebsocketConsumer):
+
+    def send_user_data(self):
+        profile_photo = None
+        profile_photo_name = None
+        if self.user.profile_image:
+            pic = self.user.profile_image.read()
+            # with open(self.user.profile_image.path, 'rb') as file:
+            #     pic = file.read()
+            base64_bytes = base64.b64encode(pic)
+            profile_photo = base64_bytes.decode('utf-8')
+            profile_photo_name = pathlib.PurePath(self.user.profile_image.path).name
+
+        data = {
+            'profile_image': profile_photo,
+            'profile_photo_name': profile_photo_name,
+            'first_name': self.user.first_name,
+            'last_name': self.user.last_name,
+            'user_id': self.user.user_id,
+            'email': self.user.email,
+            'phone_number': self.user.phone_number,
+            'show_profile_pic': self.user.show_profile_pic,
+            'show_phone_number': self.user.show_phone_number,
+        }
+        self.send(text_data=json.dumps(data))
+
+
+
+    def connect(self):
+        self.user = self.scope['user']
+
+        if not self.user:
+            self.close()
+        else:
+            self.accept()
+            self.send_user_data()
+
+    def receive(self, text_data=None, bytes_data=None):
+        json_data = json.loads(text_data)
+        update_fields = ['first_name', 'last_name', 'user_id', 'show_profile_pic', 'show_phone_number']
+        print(json_data)
+        if json_data.get('profile_image', None):
+            file_extension = json_data['file_name'].split('.')[-1]
+            base64_file_data = json_data['profile_image'].split(';base64,')[1]
+            print(base64_file_data)
+            base64_bytes = base64_file_data.encode('utf-8')
+            temp_file_path = os.path.join(
+                BASE_DIR, 'temp', f'{self.user.id}-{round(time.time() * 1000)}.{file_extension}'
+            )
+            with open(temp_file_path, 'wb') as file:
+                file.write(base64.decodebytes(base64_bytes))
+
+            with open(temp_file_path, 'rb') as file:
+                self.user.profile_image = File(file)
+                self.user.save(update_fields=['profile_image'])
+            os.remove(temp_file_path)
+
+
+        self.user.first_name = json_data['first_name']
+        self.user.last_name = json_data['last_name']
+        self.user.user_id = json_data['user_id']
+        self.user.show_profile_pic = json_data['show_profile_pic']
+        self.user.show_phone_number = json_data['show_phone_number']
+        try:
+            self.user.save(update_fields=update_fields)
+        except:
+            pass
+
+        self.send_user_data()
+
+
+class UserInfo(WebsocketConsumer):
+    def connect(self):
+        self.user = self.scope['user']
+
+        if not self.user:
+            self.close()
+        else:
+            self.accept()
+
+    def receive(self, text_data=None, bytes_data=None):
+        json_data = json.loads(text_data)
+        user_email = json_data['user_email']
+        user = User.objects.filter(email=user_email)
+
+        if user.exists():
+            user = user.first()
+            profile_pic = None
+            profile_pic_name = None
+            if user.profile_image and user.show_profile_pic:
+                pic = user.profile_image.read()
+                base64_bytes = base64.b64encode(pic)
+                profile_pic = base64_bytes.decode('utf-8')
+                profile_pic_name = pathlib.PurePath(user.profile_image.path).name
+
+            data = {
+                'event': 'user_info',
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'phone_number': None if not user.show_phone_number else user.phone_number,
+                'email': user.email,
+                'profile_pic': profile_pic,
+                'profile_pic_name': profile_pic_name
+            }
+
+            self.send(text_data=json.dumps(data))
+        else:
+            self.send(text_data=json.dumps({'event': 'error', 'description': 'Bad user email'}))
+
 

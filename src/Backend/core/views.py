@@ -25,3 +25,7 @@ def authentication_view(request):
 @login_required
 def chatbox_view(request):
     return render(request, 'chatbox/index.html', {"user_email": request.user.email})
+
+
+def user_profile_change_view(request):
+    return render(request, 'user-profile/UserProfileChange.html')

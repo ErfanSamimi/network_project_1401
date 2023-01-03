@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <!--  This file has been downloaded from bootdey.com @bootdey on twitter -->
+    <!--  All snippets are MIT license http://bootdey.com/license -->
+    <title>Edit profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://netdna.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<body>
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+<div class="container">
+    <div class="view-account">
+        <section class="module">
+            <div class="module-inner">
+                <div class="side-bar">
+                    <div class="user-info">
+                        <img id="profile-image" class="img-profile img-circle img-responsive center-block"
+                             src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="">
+                        <ul id="user-info" class="meta list list-unstyled">
+                            <li class="name">Rebecca Sanders
+                                <br>
+                                <label class="label label-info">+9891312345678</label>
+                            </li>
+                            <li class="email">chert@chert.com</li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <div class="content-panel">
+                    <div class="billing">
+                        <div class="secure text-center margin-bottom-md">
+                            <h3 class="margin-bottom-md text-success">
+                                <span class="fs1 icon" aria-hidden="true" data-icon=""></span>
+                                Edit Profile<br>
+                            </h3>
+                        </div>
+                        <form id="edit-profile" class="form-horizontal" method="post" role="form">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">first name</label>
+                                <div class="col-sm-9">
+                                    <input id="firstname-input" type="text" class="form-control"
+                                           placeholder="Your first name">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Last name</label>
+                                <div class="col-sm-9">
+                                    <input id="lastname-input" type="text" class="form-control"
+                                           placeholder="Your last name">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Username </label>
+                                <div class="col-sm-9">
+                                    <input id="username-input" type="text" class="form-control" placeholder="@Username">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Privacy</label>
+                                <div class="col-sm-9 form-inline row">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="" id="show-profile-pic">
+                                        <label class="form-check-label" for="flexCheckDefault">
+                                            Show Profile Picture
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="" id="show-phone-num">
+                                        <label class="form-check-label" for="flexCheckChecked">
+                                            Show Phone Number
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label" for="exampleFormControlFile1">Profile
+                                    Image</label>
+                                <div class="col-sm-9">
+                                    <input type="file" class="form-control-file" id="profile-image-file">
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="action-wrapper text-center">
+                                <div class="action-btn">
+                                    <button id="apply-changes" class="btn btn-success btn-lg">
+                                        Apply Changes
+                                        <i class="fa fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<style type="text/css">
+    body {
+        background: #f9f9fb;
+    }
+
+    .view-account {
+        background: #FFFFFF;
+        margin-top: 20px;
+    }
+
+    .view-account .pro-label {
+        font-size: 13px;
+        padding: 4px 5px;
+        position: relative;
+        top: -5px;
+        margin-left: 10px;
+        display: inline-block
+    }
+
+    .view-account .side-bar {
+        padding-bottom: 30px
+    }
+
+    .view-account .side-bar .user-info {
+        text-align: center;
+        margin-bottom: 15px;
+        padding: 30px;
+        color: #616670;
+        border-bottom: 1px solid #f3f3f3
+    }
+
+    .view-account .side-bar .user-info .img-profile {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 15px
+    }
+
+    .view-account .side-bar .user-info .meta li {
+        margin-bottom: 10px
+    }
+
+    .view-account .side-bar .user-info .meta li span {
+        display: inline-block;
+        width: 100px;
+        margin-right: 5px;
+        text-align: right
+    }
+
+    .view-account .side-bar .user-info .meta li a {
+        color: #616670
+    }
+
+    .view-account .side-bar .user-info .meta li.activity {
+        color: #a2a6af
+    }
+
+    .view-account .side-bar .side-menu {
+        text-align: center
+    }
+
+    .view-account .side-bar .side-menu .nav {
+        display: inline-block;
+        margin: 0 auto
+    }
+
+    .view-account .side-bar .side-menu .nav > li {
+        font-size: 14px;
+        margin-bottom: 0;
+        border-bottom: none;
+        display: inline-block;
+        float: left;
+        margin-right: 15px;
+        margin-bottom: 15px
+    }
+
+    .view-account .side-bar .side-menu .nav > li:last-child {
+        margin-right: 0
+    }
+
+    .view-account .side-bar .side-menu .nav > li > a {
+        display: inline-block;
+        color: #9499a3;
+        padding: 5px;
+        border-bottom: 2px solid transparent
+    }
+
+    .view-account .side-bar .side-menu .nav > li > a:hover {
+        color: #616670;
+        background: none
+    }
+
+    .view-account .side-bar .side-menu .nav > li.active a {
+        color: #40babd;
+        border-bottom: 2px solid #40babd;
+        background: none;
+        border-right: none
+    }
+
+    .theme-2 .view-account .side-bar .side-menu .nav > li.active a {
+        color: #6dbd63;
+        border-bottom-color: #6dbd63
+    }
+
+    .theme-3 .view-account .side-bar .side-menu .nav > li.active a {
+        color: #497cb1;
+        border-bottom-color: #497cb1
+    }
+
+    .theme-4 .view-account .side-bar .side-menu .nav > li.active a {
+        color: #ec6952;
+        border-bottom-color: #ec6952
+    }
+
+    .view-account .content-panel {
+        padding: 30px
+    }
+
+    .view-account .content-panel .avatar .figure img {
+        float: right;
+        width: 64px
+    }
+
+    .view-account .content-panel .mails-wrapper .mail-item > div {
+        float: left
+    }
+
+
+    .view-account .content-panel .mails-wrapper .mail-item a {
+        color: #616670
+    }
+
+    .view-account .content-panel .mails-wrapper .mail-item a:hover {
+        color: #494d55;
+        text-decoration: none
+    }
+
+
+    .view-account .content-panel .mails-wrapper .mail-item .mail-subject .label a,
+    .view-account .content-panel .mails-wrapper .mail-item .mail-subject .label a:hover {
+        color: #fff
+    }
+
+    .drive-wrapper .drive-item-title a {
+        color: #494d55
+    }
+
+    .drive-wrapper .drive-item-title a:hover {
+        color: #40babd
+    }
+
+    .theme-2 .drive-wrapper .drive-item-title a:hover {
+        color: #6dbd63
+    }
+
+    .theme-3 .drive-wrapper .drive-item-title a:hover {
+        color: #497cb1
+    }
+
+    .theme-4 .drive-wrapper .drive-item-title a:hover {
+        color: #ec6952
+    }
+
+    .drive-wrapper .drive-item-thumb a {
+        -webkit-opacity: .8;
+        -moz-opacity: .8;
+        opacity: .8
+    }
+
+    .drive-wrapper .drive-item-thumb a:hover {
+        -webkit-opacity: 1;
+        -moz-opacity: 1;
+        opacity: 1
+    }
+
+    .drive-wrapper .drive-item-footer .utilities li:last-child {
+        padding-right: 0
+    }
+
+    .drive-list-view a {
+        color: #494d55
+    }
+
+    .drive-list-view a:hover {
+        color: #40babd
+    }
+
+    .theme-2 .drive-list-view a:hover {
+        color: #6dbd63
+    }
+
+    .theme-3 .drive-list-view a:hover {
+        color: #497cb1
+    }
+
+    .theme-4 .drive-list-view a:hover {
+        color: #ec6952
+    }
+
+    @media (max-width: 767px) {
+        .view-account .content-panel .title {
+            text-align: center
+        }
+
+        .view-account .side-bar .user-info {
+            padding: 0
+        }
+
+        .view-account .side-bar .user-info .img-profile {
+            width: 60px;
+            height: 60px
+        }
+
+        .view-account .side-bar .user-info .meta li {
+            margin-bottom: 5px
+        }
+
+        .view-account .content-panel {
+            padding: 0
+        }
+
+        .view-account .content-panel .avatar .figure img {
+            float: none;
+            margin-bottom: 15px
+        }
+    }
+
+    @media (min-width: 768px) {
+        .view-account .side-bar .user-info {
+            padding: 0;
+            padding-bottom: 15px
+        }
+    }
+
+    @media (min-width: 992px) {
+        .view-account .content-panel {
+            min-height: 800px;
+            border-left: 1px solid #f3f3f7;
+            margin-left: 200px
+        }
+
+        .view-account .side-bar {
+            position: absolute;
+            width: 200px;
+            min-height: 600px
+        }
+
+        .view-account .side-bar .user-info {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding: 30px
+        }
+
+        .view-account .side-bar .user-info .img-profile {
+            width: 120px;
+            height: 120px
+        }
+
+        .view-account .side-bar .side-menu .nav > li {
+            display: block;
+            float: none;
+            font-size: 14px;
+            border-bottom: 1px solid #f3f3f7;
+            margin-right: 0;
+            margin-bottom: 0
+        }
+
+        .view-account .side-bar .side-menu .nav > li > a {
+            display: block;
+            color: #9499a3;
+            padding: 10px 15px;
+            padding-left: 30px
+        }
+
+        .view-account .side-bar .side-menu .nav > li > a:hover {
+            background: #f9f9fb
+        }
+
+        .view-account .side-bar .side-menu .nav > li.active a {
+            background: #f9f9fb;
+            border-right: 4px solid #40babd;
+            border-bottom: none
+        }
+
+        .theme-2 .view-account .side-bar .side-menu .nav > li.active a {
+            border-right-color: #6dbd63
+        }
+
+        .theme-3 .view-account .side-bar .side-menu .nav > li.active a {
+            border-right-color: #497cb1
+        }
+
+        .theme-4 .view-account .side-bar .side-menu .nav > li.active a {
+            border-right-color: #ec6952
+        }
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        const edit_profile_socket = new WebSocket(
+            'ws://' +
+            window.location.host +
+            '/ws/user/edit-profile/'
+        );
+
+        edit_profile_socket.onmessage = function (e) {
+            var data = JSON.parse(e.data);
+            console.log(data);
+            $('#firstname-input').val(data['first_name']);
+            $('#lastname-input').val(data['last_name']);
+            $('#username-input').val(data['user_id']);
+            $('#show-profile-pic').prop('checked', data['show_profile_pic']);
+            $('#show-phone-num').prop('checked', data['show_phone_number']);
+            if (data['profile_image']) {
+                var src = 'data:image/' + data['profile_photo_name'].split('.')[1] + ';base64, ' + data['profile_image'] + '';
+                $('#profile-image').attr('src', src);
+            }
+            $('#user-info').html('<li class="name">'+
+                data['first_name'] + ' ' +data['last_name'] +
+                ' <label class="label label-info">'+data['phone_number']+'' +
+                '</label> </li> <li class="email">'+data['email']+'</li>')
+        }
+
+        $('#edit-profile').submit(function () {
+            var data = {
+                'first_name': $('#firstname-input').val(),
+                'last_name': $('#lastname-input').val(),
+                'user_id': $('#username-input').val(),
+                'show_profile_pic': $('#show-profile-pic').is(":checked"),
+                'show_phone_number': $('#show-phone-num').is(":checked"),
+            }
+            let file = document.querySelector('#profile-image-file').files[0];
+
+            if (file) {
+                var reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function () {
+                    data.file_name = file.name;
+                    data.profile_image = reader.result;
+                    edit_profile_socket.send(JSON.stringify(data));
+                };
+                $('#profile-image-file').val(null);
+            } else
+                edit_profile_socket.send(JSON.stringify(data));
+
+            return false;
+        });
+    });
+</script>
+</body>
+</html>
