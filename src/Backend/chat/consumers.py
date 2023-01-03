@@ -26,6 +26,8 @@ class ChatroomCreation(WebsocketConsumer):
             self.send(text_data=json.dumps(
                 {'event': 'group_creation', 'description': 'group creation was successful'})
             )
+            UserChats.update_chat_list(self.user)
+            UserChats.update_chat_list(self.user, ['admin', 'creator'])
 
         elif chatroom_type == 'channel':
             channel_name = data['channel_name']
@@ -33,6 +35,8 @@ class ChatroomCreation(WebsocketConsumer):
             self.send(text_data=json.dumps(
                 {'event': 'channel_creation', 'description': 'channel creation was successful'})
             )
+            UserChats.update_chat_list(self.user)
+            UserChats.update_chat_list(self.user, ['admin', 'creator'])
 
 
         elif chatroom_type == 'direct':
@@ -44,6 +48,10 @@ class ChatroomCreation(WebsocketConsumer):
                     self.send(text_data=json.dumps(
                         {'event': 'direct_creation', 'description': 'Direct chat creation was successful'})
                     )
+                    UserChats.update_chat_list(member2.first())
+                    UserChats.update_chat_list(member2.first(), ['admin', 'creator'])
+                    UserChats.update_chat_list(self.user)
+                    UserChats.update_chat_list(self.user, ['admin', 'creator'])
 
                 except ChatRoomExistsError:
                     self.send(text_data=json.dumps(
@@ -160,24 +168,36 @@ class ChatRoomConsumer(WebsocketConsumer):
 class UserChats(WebsocketConsumer):
 
     @staticmethod
+    def update_chat_list(user, user_roles=None):
+        ch_layer = get_channel_layer(DEFAULT_CHANNEL_LAYER)
+        context = {
+            'type': 'user_chat_list',
+            'event': 'chat_list_all' if not user_roles else 'chat_list_slice',
+            'chats': UserChats.user_chat_rooms(user, user_roles)
+        }
+        async_to_sync(ch_layer.group_send)(UserChats.get_channel_group_name(user), context)
+
+    @staticmethod
     def get_channel_group_name(user):
         return f'user_chats_{user.phone_number}'
 
     @staticmethod
-    def user_chat_rooms(user):
-        channels = Channels.objects.filter(chatroom_member__member=user).values(
+    def user_chat_rooms(user, roles=None):
+        member_role = ChatRoom_Member.MEMBER_ROLES if not roles else roles
+        channels = Channels.objects.filter(chatroom_member__member=user, chatroom_member__role__in=member_role).values(
             'chat_room_id',
             'title',
             'chatroom_member__role'
         )
-        groups = GroupChat.objects.filter(chatroom_member__member=user).values(
+        groups = GroupChat.objects.filter(chatroom_member__member=user, chatroom_member__role__in=member_role).values(
             'chat_room_id', 'title',
             'chatroom_member__role'
         )
 
         directs = ChatRoom_Member.objects.filter(
             member=user,
-            chat_room__chat_room_type='direct',
+            role__in=member_role,
+            chat_room__chat_room_type='direct'
         ).select_related('chat_room')
 
         chatrooms = list()
@@ -221,17 +241,26 @@ class UserChats(WebsocketConsumer):
             self.accept()
             async_to_sync(self.channel_layer.group_add)(
                 UserChats.get_channel_group_name(self.user), self.channel_name)
-            context = {
-                'type': 'user_chat_list',
-                'chats': UserChats.user_chat_rooms(self.user)
-            }
-            async_to_sync(self.channel_layer.group_send)(
-                UserChats.get_channel_group_name(self.user), context)
+
+
+    def receive(self, text_data=None, bytes_data=None):
+        json_data = json.loads(text_data)
+        print(json_data)
+        roles = json_data.get('roles', None)
+
+        context = {
+            'type': 'user_chat_list',
+            'event': 'chat_list_all' if not roles else 'chat_list_slice',
+            'chats': UserChats.user_chat_rooms(self.user, roles)
+        }
+        async_to_sync(self.channel_layer.group_send)(UserChats.get_channel_group_name(self.user), context)
+
 
     def user_chat_list(self, event):
         chats = event['chats']
+        ev = event['event']
         data = {
-            'event': 'chat_list',
+            'event': ev,
             'chats': chats
         }
         text_data = json.dumps(data)
