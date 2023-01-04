@@ -8,7 +8,6 @@
 
 <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
 <!------ Include the above in your HEAD tag ---------->
 
 
@@ -992,6 +991,10 @@ Codepen: https://codepen.io/emilcarlsson/
 Website: http://emilcarlsson.se/
 
 -->
+
+
+
+
 {#            --------------------------------------------------------------------------------------------------------------------------------------#}
 
 <button hidden id="user-model-button" type="button" class="btn btn-primary" data-toggle="modal"
@@ -1046,6 +1049,8 @@ Website: http://emilcarlsson.se/
             </div>
 
         </a>
+
+
         <div id="contacts">
             <ul>
                 <li class="contact">
@@ -1131,6 +1136,14 @@ Website: http://emilcarlsson.se/
                 </li>
             </ul>
         </div>
+        <div class="input-group">
+            <input id="chatroom-secret-input" class="form-control form-control-lg" type="password"
+                           placeholder="Chatroom Secret">
+            <span class="input-group-btn">
+                <button id="chatroom-password-save" class="btn btn-default" type="button">Save</button>
+            </span>
+        </div>
+
         <div id="bottom-bar">
             <a href="{% url 'chatroom_creation' %}">
                 <button id="addcontact"><i
@@ -1218,7 +1231,8 @@ Website: http://emilcarlsson.se/
 </div>
 
 {{ user_email|json_script:"user-email" }}
-<script src='https://code.jquery.com/jquery-2.2.4.min.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
+<script src="{% static 'chatbox/js.cookie.min.js' %}"></script>
 <script>
 
     $(".messages").animate({scrollTop: $(document).height()}, "fast");
@@ -1262,6 +1276,8 @@ Website: http://emilcarlsson.se/
 
     const user_email = JSON.parse(document.getElementById('user-email').textContent);
 
+    var secretKey = null;
+    var room_id = null;
 
     function stringToColour(str) {
         var hash = 0;
@@ -1285,6 +1301,8 @@ Website: http://emilcarlsson.se/
                 data['messages'].forEach(function (item) {
                     if (item['message_type'] === 'text') {
                         let message = item['text'];
+                        var decrypted = CryptoJS.AES.decrypt(message, secretKey);
+                        message = decrypted.toString(CryptoJS.enc.Utf8);
                         if (item['sender'] === user_email) {
                             $('<li class="sent" id="m-' + item['message_id'] + '"><input class="message-id" type="hidden" value="' + item['message_id'] + '"><p>' + message + '</p></li>').appendTo($('.messages ul'));
 
@@ -1325,9 +1343,12 @@ Website: http://emilcarlsson.se/
             let voice = document.querySelector('#voice-input').files[0];
             let message = $(".message-input input").val();
 
+
             if (message) {
                 $('.message-input input').val(null);
-                socket.send(JSON.stringify({"message_type": 'text', 'text': message}));
+                {#socket.send(JSON.stringify({"message_type": 'text', 'text': message}));#}
+                let encrypted = CryptoJS.AES.encrypt(message, secretKey);
+                socket.send(JSON.stringify({"message_type": 'text', 'text': encrypted.toString()}));
                 $('.message-input input').val(null);
 
             }
@@ -1344,8 +1365,11 @@ Website: http://emilcarlsson.se/
                 }
                 reader.readAsDataURL(file);
                 reader.onload = function () {
+                    let encrypted = CryptoJS.AES.encrypt(reader.result, secretKey);
                     var data = {
-                        "data": reader.result,
+                        {#"data": reader.result,#}
+                        "data": encrypted.toString(),
+
                         file_extension: file.name.split('.').pop(),
                         message_type: message_type
                     };
@@ -1366,7 +1390,10 @@ Website: http://emilcarlsson.se/
         var ext = image_data['file_name'].split('.').pop()
         var s = $('.messages ul').find('li.download-image.image-' + message_id);
         s.removeClass('download-image');
-        var str = '<p> <img class="img-message"src="data:image/' + ext + ';base64, ' + image_data['data'] + '"alt=""> </p>';
+        var decrypted = CryptoJS.AES.decrypt(image_data['data'], secretKey);
+        message = decrypted.toString(CryptoJS.enc.Utf8);
+        {#var str = '<p> <img class="img-message"src="data:image/' + ext + ';base64, ' + image_data['data'] + '"alt=""> </p>';#}
+        var str = '<p> <img class="img-message"src="' + message + '"alt=""> </p>';
         s.find('.message-data').html(str);
     }
 
@@ -1374,9 +1401,20 @@ Website: http://emilcarlsson.se/
         var ext = voice_data['file_name'].split('.').pop()
         var s = $('.messages ul').find('li.download-voice.voice-' + message_id);
         s.removeClass('download-voice');
-        var str = '<div class="audio-message"><audio controls="controls" autobuffer="autobuffer"><source src="data:audio/' + ext +
-            ';base64, ' + voice_data['data'] + '" /></audio> </div>';
+        var decrypted = CryptoJS.AES.decrypt(voice_data['data'], secretKey);
+        message = decrypted.toString(CryptoJS.enc.Utf8);
+        {#var str = '<div class="audio-message"><audio controls="controls" autobuffer="autobuffer"><source src="data:audio/' + ext +#}
+        var str = '<div class="audio-message"><audio controls="controls" autobuffer="autobuffer"><source src="' + message + '" /></audio> </div>';
         s.find('.message-data').html(str);
+    }
+
+    function getChatroomSecretKey(chatroom_id) {
+        let secret = Cookies.get(chatroom_id);
+        if (!secret)
+            secret = $('#chatroom-secret-input').val();
+
+        return secret;
+
     }
 
     $(document).ready(function () {
@@ -1438,6 +1476,12 @@ Website: http://emilcarlsson.se/
         });
 
 
+        $('#chatroom-password-save').click(function (){
+            let secret = $('#chatroom-secret-input').val();
+            $('#chatroom-secret-input').val('');
+            Cookies.set(room_id, secret, { expires: 7, path: '' })
+        });
+
         $('#image-input').change(function () {
             let file = document.querySelector('#image-input').files[0];
             $('#text-input').attr('placeholder', file.name);
@@ -1448,48 +1492,58 @@ Website: http://emilcarlsson.se/
             $('#text-input').attr('placeholder', file.name);
         });
 
-        $('#contacts').on('click', '.contact', function () {
+        $('#contacts').on('click', '.contact', async function () {
             if (!($(this).hasClass('active'))) {
                 $('.messages ul').empty();
                 chatroom_title = $(this).children().find('.name').text();
                 $('.contact-profile p').text(chatroom_title);
                 $('#contacts .active').removeClass('active');
                 $(this).addClass('active');
-                var room_id = $(this).find('.h_v').val();
+                room_id = $(this).find('.h_v').val();
                 if (message_socket instanceof WebSocket)
                     message_socket.close()
 
-                message_socket = new WebSocket(
-                    'ws://' +
-                    window.location.host +
-                    '/ws/chat/chatroom/' +
-                    room_id +
-                    '/'
-                );
 
-                messaging(message_socket);
+                var s = await getChatroomSecretKey(room_id);
 
-                if (media_socket instanceof WebSocket)
-                    media_socket.close()
+                if (s) {
+                    secretKey = s;
 
-                media_socket = new WebSocket(
-                    'ws://' +
-                    window.location.host +
-                    '/ws/media/' +
-                    room_id +
-                    '/'
-                );
+                    message_socket = new WebSocket(
+                        'ws://' +
+                        window.location.host +
+                        '/ws/chat/chatroom/' +
+                        room_id +
+                        '/'
+                    );
 
-                if (delete_message_socket instanceof WebSocket)
-                    delete_message_socket.close()
+                    messaging(message_socket);
 
-                delete_message_socket = new WebSocket(
-                    'ws://' +
-                    window.location.host +
-                    '/ws/delete/' +
-                    room_id +
-                    '/'
-                );
+                    if (media_socket instanceof WebSocket)
+                        media_socket.close()
+
+                    media_socket = new WebSocket(
+                        'ws://' +
+                        window.location.host +
+                        '/ws/media/' +
+                        room_id +
+                        '/'
+                    );
+
+                    if (delete_message_socket instanceof WebSocket)
+                        delete_message_socket.close()
+
+                    delete_message_socket = new WebSocket(
+                        'ws://' +
+                        window.location.host +
+                        '/ws/delete/' +
+                        room_id +
+                        '/'
+                    );
+
+                }
+
+
             }
 
         });
@@ -1545,11 +1599,9 @@ Website: http://emilcarlsson.se/
             let email = $(this).text();
             user_info_socket.send(JSON.stringify({'user_email': email}))
             $('#user-model-button').click();
-            {#alert(email);#}
         });
 
     })
-
 
 </script>
 </body>

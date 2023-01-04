@@ -1,5 +1,5 @@
 from django.urls import path
-from core.views import authentication_view, chatbox_view, user_profile_change_view, join_chat
+from core.views import authentication_view, chatbox_view, user_profile_change_view, joinchat_view
 
 urlpatterns = [
     path('user/auth/', authentication_view, name='authentication'),

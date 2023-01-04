@@ -71,7 +71,6 @@ class ChatroomCreation(WebsocketConsumer):
 
 class ChatRoomConsumer(WebsocketConsumer):
     def connect(self):
-        print(self.channel_name)
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.user = self.scope['user']
 
@@ -109,7 +108,6 @@ class ChatRoomConsumer(WebsocketConsumer):
 
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        print(text_data_json)
         message_type = text_data_json['message_type']
 
         member_role = ChatRoom_Member.objects.filter(
@@ -131,14 +129,16 @@ class ChatRoomConsumer(WebsocketConsumer):
                     self.user, self.chatroom, text_data_json['text'])
 
             elif message_type == 'image':
-                data = text_data_json['data'].split(';base64,')[1]
+                # data = text_data_json['data'].split(';base64,')[1]
+                data = text_data_json['data']
                 message = Message.objects.create_image_message(
                     self.user,
                     self.chatroom, data,
                     text_data_json['file_extension']
                 )
             else:
-                data = text_data_json['data'].split(';base64,')[1]
+                # data = text_data_json['data'].split(';base64,')[1]
+                data = text_data_json['data']
                 message = Message.objects.create_voice_message(
                     self.user,
                     self.chatroom, data,
@@ -252,7 +252,6 @@ class UserChats(WebsocketConsumer):
 
     def receive(self, text_data=None, bytes_data=None):
         json_data = json.loads(text_data)
-        print(json_data)
         roles = json_data.get('roles', None)
 
         context = {
@@ -271,7 +270,6 @@ class UserChats(WebsocketConsumer):
             'chats': chats
         }
         text_data = json.dumps(data)
-        print(text_data)
         self.send(text_data=text_data)
 
     def disconnect(self, close_code):
