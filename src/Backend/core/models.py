@@ -1,6 +1,7 @@
 import base64
 
 from django.core.files import File
+from django.core.validators import validate_email
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 import time
@@ -30,6 +31,10 @@ class UserManager(BaseUserManager):
     def create_user(self, email, phone_number, password, **extra_fields):
         if not email:
             raise ValueError("User must have a email")
+
+        validate_email(email)
+
+
 
         if not phone_number:
             raise ValueError("User must have a phone_number")

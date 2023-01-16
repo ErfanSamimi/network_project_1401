@@ -337,6 +337,7 @@ class AddMember(WebsocketConsumer):
             self.send(text_data=json.dumps(data))
 
 
+
 class RemoveMember(WebsocketConsumer):
     def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
@@ -354,41 +355,33 @@ class RemoveMember(WebsocketConsumer):
     def receive(self, text_data):
         data = json.loads(text_data)
         phone_numbers = data['phone_numbers']
-        user_role = data['role']
 
-        if (self.chatroom_member.role == 'creator' and user_role not in ['admin', 'muted', 'member']) or \
-                (self.chatroom_member.role == 'admin' and user_role not in ['muted', 'member']):
+        try:
+            phone_numbers.remove(self.chatroom_member.member.phone_number)
+        except:
+            pass
 
-            self.send(text_data=json.dumps({'event': 'error', 'description': "Bad user role!"}))
-
+        if self.chatroom_member.role == 'creator':
+            members = ChatRoom_Member.objects.filter(
+                member__phone_number__in=phone_numbers, chat_room__chat_room_id=self.room_name
+            )
         else:
-            unchanged = 0
-            errors = 0
-            users = User.objects.filter(phone_number__in=phone_numbers)
-            for user in users:
+            members = ChatRoom_Member.objects.filter(
+                ~Q(role__in=['admin', 'creator']), member__phone_number__in=phone_numbers, chat_room__chat_room_id=self.room_name
+            )
 
-                if self.chatroom_member.chat_room.chat_room_type == 'group':
-                    print('group')
-                    add_member_method = ChatRoom_Member.objects.add_group_member
-                else:
-                    add_member_method = ChatRoom_Member.objects.add_channel_member
-                    print('channel')
+        users = []
+        for m in members:
+            users.append(m.member)
 
+        if members:
+            members.delete()
 
-                try:
-                    add_member_method(self.chatroom_member.chat_room, user, user_role)
-                    UserChats.update_chat_list(user)
-                    UserChats.update_chat_list(user, ['admin', 'creator'])
-                except AlreadyExistsInChatroom:
-                    unchanged += 1
-                # except:
-                #     errors += 1
+        for i in users:
+            UserChats.update_chat_list(i)
+            UserChats.update_chat_list(i, ['admin', 'creator'])
 
-            success = len(phone_numbers) - unchanged -errors
-            data = {
-                'event': 'members_added',
-                'description': f'errors: {errors}, unchanged: {unchanged}, success: {success}'
-            }
-            self.send(text_data=json.dumps(data))
-
+        self.send(text_data=json.dumps(
+            {'event': 'remove_member', 'description': "Selected users are removed successfully"}
+        ))
 

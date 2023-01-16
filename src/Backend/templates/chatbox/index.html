@@ -1138,7 +1138,7 @@ Website: http://emilcarlsson.se/
         </div>
         <div class="input-group">
             <input id="chatroom-secret-input" class="form-control form-control-lg" type="password"
-                           placeholder="Chatroom Secret">
+                   placeholder="Chatroom Secret">
             <span class="input-group-btn">
                 <button id="chatroom-password-save" class="btn btn-default" type="button">Save</button>
             </span>
@@ -1476,10 +1476,10 @@ Website: http://emilcarlsson.se/
         });
 
 
-        $('#chatroom-password-save').click(function (){
+        $('#chatroom-password-save').click(function () {
             let secret = $('#chatroom-secret-input').val();
             $('#chatroom-secret-input').val('');
-            Cookies.set(room_id, secret, { expires: 7, path: '' })
+            Cookies.set(room_id, secret, {expires: 7, path: ''})
         });
 
         $('#image-input').change(function () {
@@ -1494,21 +1494,18 @@ Website: http://emilcarlsson.se/
 
         $('#contacts').on('click', '.contact', async function () {
             if (!($(this).hasClass('active'))) {
-                $('.messages ul').empty();
-                chatroom_title = $(this).children().find('.name').text();
-                $('.contact-profile p').text(chatroom_title);
-                $('#contacts .active').removeClass('active');
-                $(this).addClass('active');
                 room_id = $(this).find('.h_v').val();
-                if (message_socket instanceof WebSocket)
-                    message_socket.close()
-
-
                 var s = await getChatroomSecretKey(room_id);
 
                 if (s) {
                     secretKey = s;
-
+                    $('.messages ul').empty();
+                    chatroom_title = $(this).children().find('.name').text();
+                    $('.contact-profile p').text(chatroom_title);
+                    if (message_socket instanceof WebSocket)
+                        message_socket.close()
+                    $('#contacts .active').removeClass('active');
+                    $(this).addClass('active');
                     message_socket = new WebSocket(
                         'ws://' +
                         window.location.host +
@@ -1541,7 +1538,8 @@ Website: http://emilcarlsson.se/
                         '/'
                     );
 
-                }
+                } else
+                    alert('No secret found for this chatroom');
 
 
             }
