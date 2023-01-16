@@ -22,6 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('chat/', include('chat.urls')),
     path('', include('core.urls')),
+    path('', include('email_verification.urls'))
 ]
 
 if DEBUG:

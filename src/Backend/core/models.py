@@ -40,6 +40,7 @@ class UserManager(BaseUserManager):
         instance = self.model(
             email=email, phone_number=phone_number, **extra_fields)
         instance.set_password(password)
+        instance.clean_fields()
         instance.save()
         return instance
 

@@ -3,6 +3,7 @@ import json
 import os
 import pathlib
 import time
+import traceback
 
 from channels.auth import login, logout
 from asgiref.sync import async_to_sync
@@ -15,6 +16,7 @@ from chat_app import settings
 from chat_app.settings import TESTING, BASE_DIR
 from core.models import ChatRoom, Message, User, ChatRoom_Member
 from core.serializer import serialize_message
+from email_verification.views import send_email_confirmation
 
 
 class RegisterUser(WebsocketConsumer):
@@ -37,6 +39,7 @@ class RegisterUser(WebsocketConsumer):
         if user.exists():
             self.send(text_data=json.dumps({'evnet': 'error', 'description': "A user exists with this values"}))
 
+
         else:
             try:
                 user = User.objects.create_user(
@@ -44,9 +47,11 @@ class RegisterUser(WebsocketConsumer):
                     phone_number=text_data_json['phone_number'],
                     password=text_data_json['password']
                 )
-
+                # send_email_confirmation(user_id=user.id, user_email=user.email)
                 self.send(text_data=json.dumps({'event': 'add_user', 'description': "User created"}))
+
             except:
+                traceback.print_exc()
                 self.send(text_data=json.dumps({'event': 'error', 'description': "Bad Parameters!"}))
 
 

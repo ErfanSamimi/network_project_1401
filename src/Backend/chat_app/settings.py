@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'chat',
-    "core"
+    "core",
+    'email_verification',
 ]
 
 MIDDLEWARE = [
@@ -122,7 +123,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'templates'),
 ]
 
-
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
@@ -148,3 +148,15 @@ CHANNEL_LAYERS = {
 #         },
 #     },
 # }
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_VERIFY_URL = '127.0.0.1:8000/user/auth/confirm-email/'
+EMAIL_VERIFY_SALT = 'liZ0ekTF7djOqewpapKh'
+EMAIL_VERIFY_EXPIRE_MINUTES = 15
