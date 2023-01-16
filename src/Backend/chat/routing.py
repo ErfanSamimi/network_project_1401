@@ -7,7 +7,6 @@ websocket_urlpatterns = [
          consumers.ChatRoomConsumer.as_asgi()),
     path('ws/chatroom/create/', consumers.ChatroomCreation.as_asgi()),
     path('ws/chat/userchats/', consumers.UserChats.as_asgi()),
-    path('ws/chatroom/create/', consumers.ChatroomCreation.as_asgi()),
     path('ws/join/<str:room_name>/', consumers.AddMember.as_asgi()),
     path('ws/remove/<str:room_name>/', consumers.RemoveMember.as_asgi()),
 ]
