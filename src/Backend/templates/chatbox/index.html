@@ -1,13 +1,13 @@
 {% load static %}
 
 
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<link href="{% static 'chatbox/css/bootstrap4.0.0.min.css' %}" rel="stylesheet" id="bootstrap-css">
+<script src="{% static 'chatbox/js/bootstrap4.0.0.min.js' %}"></script>
+<script src="{% static 'chatbox/js/jquery3.2.1.min.js' %}"></script>
 <!------ Include the above in your HEAD tag ---------->
 
-<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+<link href="{% static 'chatbox/css/bootstrap3.0.0.min.css' %}" rel="stylesheet" id="bootstrap-css">
+<script src="{% static 'chatbox/js/bootstrap3.0.0.min.js' %}"></script>
 <!------ Include the above in your HEAD tag ---------->
 
 
@@ -18,12 +18,12 @@
     <meta charset='UTF-8'>
     <meta name="robots" content="noindex">
 
-    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,300' rel='stylesheet'
+    <link href='{% static 'chatbox/css/Source-Sans-Pro.css' %}' rel='stylesheet'
           type='text/css'>
 
-    <link rel='stylesheet prefetch' href='https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css'>
+    <link rel='stylesheet prefetch' href='{% static 'chatbox/css/meyer-reset2.0.min.css' %}'>
     <link rel='stylesheet prefetch'
-          href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.2/css/font-awesome.min.css'>
+          href='{% static 'chatbox/css/font-awesome.4.6.2.min.css' %}'>
     <style class="cp-pen-styles">
         body {
             display: flex;
@@ -1017,7 +1017,7 @@ Website: http://emilcarlsson.se/
                             <div class="side-bar">
                                 <div class="user-info">
                                     <img id="user-image" class="img-profile img-circle center-block"
-                                         src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="">
+                                         src="{% static 'chatbox/pic/avatar1.png' %}" alt="">
                                     <ul id="user-info" class="meta list list-unstyled">
                                         <li class="name">Rebecca Sanders
                                             <label class="label label-info">UX Designer</label>
@@ -1053,87 +1053,6 @@ Website: http://emilcarlsson.se/
 
         <div id="contacts">
             <ul>
-                <li class="contact">
-                    <div class="wrap">
-                        <div class="meta">
-                            <p class="name">Louis Litt</p>
-                            <p class="preview">You just got LITT up, Mike.</p>
-                        </div>
-                    </div>
-                </li>
-                <li class="contact active">
-                    <div class="wrap">
-                        <div class="meta">
-                            <p class="name">Harvey Specter</p>
-                            <p class="preview">Wrong. You take the gun, or you pull out a bigger one. Or, you call their
-                                bluff. Or, you do any one of a hundred and forty six other things.</p>
-                        </div>
-                    </div>
-                </li>
-                <li class="contact">
-                    <div class="wrap">
-                        <div class="meta">
-                            <p class="name">Rachel Zane</p>
-                            <p class="preview">I was thinking that we could have chicken tonight, sounds good?</p>
-                        </div>
-                    </div>
-                </li>
-                <li class="contact">
-                    <div class="wrap">
-                        <div class="meta">
-                            <p class="name">Donna Paulsen</p>
-                            <p class="preview">Mike, I know everything! I'm Donna..</p>
-                        </div>
-                    </div>
-                </li>
-                <li class="contact">
-                    <div class="wrap">
-                        <div class="meta">
-                            <p class="name">Jessica Pearson</p>
-                            <p class="preview">Have you finished the draft on the Hinsenburg deal?</p>
-                        </div>
-                    </div>
-                </li>
-                <li class="contact">
-                    <div class="wrap">
-                        <div class="meta">
-                            <p class="name">Harold Gunderson</p>
-                            <p class="preview">Thanks Mike! :)</p>
-                        </div>
-                    </div>
-                </li>
-                <li class="contact">
-                    <div class="wrap">
-                        <div class="meta">
-                            <p class="name">Daniel Hardman</p>
-                            <p class="preview">We'll meet again, Mike. Tell Jessica I said 'Hi'.</p>
-                        </div>
-                    </div>
-                </li>
-                <li class="contact">
-                    <div class="wrap">
-                        <div class="meta">
-                            <p class="name">Katrina Bennett</p>
-                            <p class="preview">I've sent you the files for the Garrett trial.</p>
-                        </div>
-                    </div>
-                </li>
-                <li class="contact">
-                    <div class="wrap">
-                        <div class="meta">
-                            <p class="name">Charles Forstman</p>
-                            <p class="preview">Mike, this isn't over.</p>
-                        </div>
-                    </div>
-                </li>
-                <li class="contact">
-                    <div class="wrap">
-                        <div class="meta">
-                            <p class="name">Jonathan Sidwell</p>
-                            <p class="preview"><span>You:</span> That's bullshit. This deal is solid.</p>
-                        </div>
-                    </div>
-                </li>
             </ul>
         </div>
         <div class="input-group">
@@ -1158,62 +1077,11 @@ Website: http://emilcarlsson.se/
     </div>
     <div class="content">
         <div class="contact-profile">
-            <p>Harvey Specter</p>
+            <p></p>
         </div>
         <div class="messages">
             <ul>
-{#                <li class="sent">#}
-{#                    <p>How the hell am I supposed to get a jury to believe you when I am not even sure that I do?!</p>#}
-{#                </li>#}
-{#                <li class="replies">#}
-{#                    <p class="sender">Erfan</p>#}
-{#                    <p>When you're backed against the wall, break the god damn thing down.</p>#}
-{#                </li>#}
-{#                <li class="replies">#}
-{#                    <p>#}
-{#                        <img class="img-message"#}
-{#                             src="{% static 'chatbox/Wall_E_Teatro-delle-Quisquilie_imagefullwide.jpg' %}"#}
-{#                             alt="">#}
-{#                    </p>#}
-{#                </li>#}
-{#                <li class="sent">#}
-{#                    <p>Oh yeah, did Michael Jordan tell you that?</p>#}
-{#                </li>#}
-{#                <li class="replies">#}
-{#                    <p>No, I told him that.</p>#}
-{#                </li>#}
-{#                <li class="replies">#}
-{#                    <div class="audio-message">#}
-{#                        <audio controls="controls" autobuffer="autobuffer">#}
-{#                            <source src="{% static 'chatbox/MP5_SMG-GunGuru-703432894.mp3' %}"/>#}
-{#                        </audio>#}
-{#                    </div>#}
-{#                </li>#}
-{#                <li class="replies">#}
-{#                    <p>What are your choices when someone puts a gun to your head?</p>#}
-{#                </li>#}
-{#                <li class="sent">#}
-{#                    <p>#}
-{#                        <img class="img-message"#}
-{#                             src="{% static 'chatbox/Wall_E_Teatro-delle-Quisquilie_imagefullwide.jpg' %}"#}
-{#                             alt="">#}
-{#                    </p>#}
-{#                </li>#}
-{#                <li class="sent">#}
-{#                    <p>What are you talking about? You do what they say or they shoot you.</p>#}
-{#                </li>#}
-{#                <li class="sent">#}
-{#                    <div class="audio-sent">#}
-{#                        <audio controls="controls" autobuffer="autobuffer">#}
-{#                            <source src="{% static 'chatbox/MP5_SMG-GunGuru-703432894.mp3' %}"/>#}
-{#                        </audio>#}
-{#                    </div>#}
-{##}
-{#                </li>#}
-{#                <li class="replies">#}
-{#                    <p>Wrong. You take the gun, or you pull out a bigger one. Or, you call their bluff. Or, you do any#}
-{#                        one of a hundred and forty six other things.</p>#}
-{#                </li>#}
+
             </ul>
         </div>
         <div class="message-input">
@@ -1231,8 +1099,8 @@ Website: http://emilcarlsson.se/
 </div>
 
 {{ user_email|json_script:"user-email" }}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.js"></script>
-<script src="{% static 'chatbox/js.cookie.min.js' %}"></script>
+<script src="{% static 'chatbox/js/crypto-js3.1.9-1.js' %}"></script>
+<script src="{% static 'chatbox/js/js.cookie.min.js' %}"></script>
 <script>
 
     $(".messages").animate({scrollTop: $(document).height()}, "fast");
@@ -1442,7 +1310,7 @@ Website: http://emilcarlsson.se/
                 if (data['profile_pic'])
                     src = 'data:image/' + data['profile_pic_name'].split('.')[1] + ';base64, ' + data['profile_pic'] + '';
                 else
-                    src = '{% static 'chatbox/149071.png' %}';
+                    src = '{% static 'chatbox/pic/149071.png' %}';
 
                 $('#user-image').attr('src', src);
 

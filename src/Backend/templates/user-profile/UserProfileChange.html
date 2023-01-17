@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,12 +8,12 @@
     <!--  All snippets are MIT license http://bootdey.com/license -->
     <title>Edit profile</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://netdna.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="{% static 'user-profile/js/jquery-1.10.2.min.js' %}"></script>
+    <link href="{% static 'user-profile/css/bootstrap3.3.7.min.css' %}" rel="stylesheet">
+    <script src="{% static 'user-profile/js/bootstrap3.3.7.min.js' %}"></script>
 </head>
 <body>
-<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+<link href="{% static 'user-profile/css/font-awesome4.3.0.min.css' %}" rel="stylesheet">
 <div class="container">
     <div class="view-account">
         <section class="module">
@@ -19,7 +21,7 @@
                 <div class="side-bar">
                     <div class="user-info">
                         <img id="profile-image" class="img-profile img-circle img-responsive center-block"
-                             src="https://bootdey.com/img/Content/avatar/avatar1.png" alt="">
+                             src="{% static 'user-profile/pic/avatar1.png' %}" alt="">
                         <ul id="user-info" class="meta list list-unstyled">
                             <li class="name">Rebecca Sanders
                                 <br>
@@ -398,7 +400,7 @@
         }
     }
 </style>
-<script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+<script src="{% static 'user-profile/js/jquery-3.6.3.min.js' %}"></script>
 
 <script type="text/javascript">
     $(document).ready(function () {
