@@ -78,6 +78,13 @@
 
                 </ul>
                 <button class="w-100 btn btn-primary btn-lg" type="button" id="apply-changes">Apply Changes</button>
+
+                <hr>
+
+                <div style="margin-top: 3%;">
+                    <label for="join-link">Join Link</label>
+                    <textarea class="form-control" id="join-link" rows="3" readonly></textarea>
+                </div>
             </div>
         </div>
     </main>
@@ -168,6 +175,7 @@
                 '/'
             );
 
+            $('#join-link').text(window.location.host + "/join/" + chatroom_id);
 
         });
 

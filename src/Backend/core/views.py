@@ -5,6 +5,7 @@ from django.http.response import HttpResponse, HttpResponseRedirect
 from .forms import LoginForm
 from .models import ChatRoom, ChatRoom_Member
 
+
 def authentication_view(request):
     if request.user.is_authenticated:
         return HttpResponse("Already logged in!")
@@ -18,8 +19,6 @@ def authentication_view(request):
             return redirect('chat_page')
             return HttpResponse(f"Logged In as {user.phone_number}")
 
-
-
     return render(request, 'auth/login & signup.html', {'login_form': form})
 
 
@@ -31,19 +30,18 @@ def chatbox_view(request):
 def user_profile_change_view(request):
     return render(request, 'user-profile/UserProfileChange.html')
 
+
 @login_required
 def joinchat_view(request, chatroom_id):
     if request.user.is_email_verified:
         chatroom = ChatRoom.objects.filter(chat_room_id=chatroom_id, chat_room_type__in=['channel', 'group'])
         if chatroom.exists():
             chatroom = chatroom.first()
-            chatmember = ChatRoom_Member.objects.filter(chat_room=chatroom , member=request.user)
+            chatmember = ChatRoom_Member.objects.filter(chat_room=chatroom, member=request.user)
             if not chatmember.exists():
                 if chatroom.chat_room_type == 'channel':
-                    ChatRoom_Member.objects.add_channel_member(chatroom,request.user,'muted')
+                    ChatRoom_Member.objects.add_channel_member(chatroom, request.user, 'muted')
                 else:
-                    ChatRoom_Member.objects.add_group_member(chatroom,request.user,'member')
-    
+                    ChatRoom_Member.objects.add_group_member(chatroom, request.user, 'member')
+
     return redirect('chat_page')
-def user_profile_change_view(request):
-    return render(request, 'user-profile/UserProfileChange.html')
