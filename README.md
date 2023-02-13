@@ -1,6 +1,6 @@
 # Project members
 - Erfan Samimi
-- Mohammand Amin Saberi
+- Mohammad Amin Saberi
 - Abolfazl Shishegar
 - Majid Bafandeh
 
