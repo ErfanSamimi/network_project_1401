@@ -1,11 +1,32 @@
-# Project members
+
+# Local Network Chat System
+
+## Description
+
+This project was developed as part of a University Academic Project. It implements a client-server messaging system over a local network, supporting real-time chat, file sharing, user registration/authentication, group and channel management, and persistent encrypted data storage.
+
+## Key Learning Outcomes
+
+- WebSocket programming for real-time communication
+- Client-server architecture design and implementation
+- User authentication and profile management
+- Group and channel creation, membership, and role-based access control
+- Secure data handling and storage using encryption
+- Persistent message and media storage in a database
+- Django ORM for modeling users, chatrooms, messages, and relationships
+- Routing and asynchronous event handling in web applications
+
+**Summary:** This project allowed us to practice secure real-time network programming, user and group management, and persistent data modeling using Django and WebSocket technologies.
+
+
+## Project members
 - Erfan Samimi
 - Mohammad Amin Saberi
 - Abolfazl Shishegar
 - Majid Bafandeh
 
 
-# How to run this project for first time
+## How to run this project for first time
 
 
 1. Clone Project
@@ -52,7 +73,7 @@ python3 manage.py runserver
 ```
 
 
-# Attention
+## Attention
 
 To create a chatroom the user's emial must be verified.
 
